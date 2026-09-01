@@ -3,63 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartBin Dashboard</title>
-    <!-- นำเข้า Google Fonts และ Tailwind CSS เพื่อความสวยงาม -->
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>SmartBin Minimal Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        body { font-family: 'Prompt', sans-serif; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col justify-between">
+<body class="bg-zinc-50 text-zinc-900 min-h-screen flex flex-col justify-between selection:bg-zinc-900 selection:text-white">
 
     <!-- Header -->
-    <header class="bg-indigo-600 text-white shadow-md py-4 px-6">
-        <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-semibold">🗑️ SmartBin Dashboard</h1>
-            <span id="connection-status" class="text-xs bg-yellow-500 px-3 py-1 rounded-full text-white font-medium">กำลังเชื่อมต่อ...</span>
+    <header class="w-full max-w-xl mx-auto px-6 pt-10 pb-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-semibold tracking-tight">SmartBin.</h1>
+            <p class="text-xs text-zinc-400 font-medium mt-0.5">IoT Monitoring System</p>
+        </div>
+        <div id="connection-status" class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-200/60 text-zinc-600 text-xs font-medium tracking-wide transition-colors duration-300">
+            <span class="w-1.5 h-1.5 rounded-full bg-zinc-400" id="status-dot"></span>
+            <span id="status-text">Connecting</span>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-4xl mx-auto p-6 w-full grid grid-cols-1 md:grid-cols-2 gap-6 my-auto">
+    <main class="w-full max-w-xl mx-auto px-6 space-y-4 my-auto">
         
-        <!-- สถานะฝาถัง -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center">
-            <h2 class="text-gray-500 font-medium mb-2">สถานะฝาถังขยะ (Lid Status)</h2>
-            <div id="lid-status-box" class="text-4xl font-bold py-4 px-8 rounded-xl bg-gray-100 text-gray-700 transition-all duration-300">
-                --
+        <!-- Lid Status Card -->
+        <div class="bg-white p-6 rounded-3xl border border-zinc-200/80 shadow-xs flex items-center justify-between">
+            <div>
+                <span class="text-xs text-zinc-400 font-medium uppercase tracking-wider">Lid Status</span>
+                <h2 id="lid-status-text" class="text-2xl font-semibold tracking-tight text-zinc-800 mt-1">--</h2>
+            </div>
+            <div id="lid-badge" class="w-12 h-12 rounded-2xl bg-zinc-100 flex items-center justify-center text-xl transition-colors duration-300">
+                🗑️
             </div>
         </div>
 
-        <!-- ระดับขยะ -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center">
-            <h2 class="text-gray-500 font-medium mb-2">ระดับขยะในถัง (Trash Level)</h2>
-            <div class="text-4xl font-bold text-indigo-600 py-4">
-                <span id="trash-percent">0</span>%
+        <!-- Trash Level Card -->
+        <div class="bg-white p-6 rounded-3xl border border-zinc-200/80 shadow-xs">
+            <div class="flex justify-between items-end mb-4">
+                <div>
+                    <span class="text-xs text-zinc-400 font-medium uppercase tracking-wider">Trash Level</span>
+                    <h2 class="text-3xl font-semibold tracking-tight text-zinc-900 mt-1"><span id="trash-percent">0</span><span class="text-lg font-normal text-zinc-400 ml-0.5">%</span></h2>
+                </div>
             </div>
-            <div class="w-full bg-gray-200 rounded-full h-3 mt-2 overflow-hidden">
-                <div id="trash-progress" class="bg-indigo-600 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+            <div class="w-full bg-zinc-100 rounded-full h-2 overflow-hidden">
+                <div id="trash-progress" class="bg-zinc-900 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
             </div>
         </div>
 
-        <!-- ข้อมูลเซนเซอร์เพิ่มเติม -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 md:col-span-2 grid grid-cols-2 gap-4 text-center">
-            <div class="p-4 bg-gray-50 rounded-xl">
-                <p class="text-gray-400 text-sm">โหมดการทำงาน</p>
-                <p id="bin-mode" class="text-xl font-semibold text-gray-800">--</p>
+        <!-- Details Grid -->
+        <div class="grid grid-cols-2 gap-4">
+            <div class="bg-white p-5 rounded-3xl border border-zinc-200/80 shadow-xs">
+                <span class="text-xs text-zinc-400 font-medium uppercase tracking-wider">Mode</span>
+                <p id="bin-mode" class="text-lg font-semibold tracking-tight text-zinc-800 mt-1">--</p>
             </div>
-            <div class="p-4 bg-gray-50 rounded-xl">
-                <p class="text-gray-400 text-sm">ระยะมือเข้าใกล้ (Ultrasonic)</p>
-                <p class="text-xl font-semibold text-gray-800"><span id="hand-distance">--</span> ซม.</p>
+            <div class="bg-white p-5 rounded-3xl border border-zinc-200/80 shadow-xs">
+                <span class="text-xs text-zinc-400 font-medium uppercase tracking-wider">Distance</span>
+                <p class="text-lg font-semibold tracking-tight text-zinc-800 mt-1"><span id="hand-distance">--</span> <span class="text-sm font-normal text-zinc-400">cm</span></p>
             </div>
         </div>
 
     </main>
 
     <!-- Footer -->
-    <footer class="text-center py-4 text-gray-400 text-sm">
-        SmartBin IoT Project &copy; 2026
+    <footer class="w-full max-w-xl mx-auto px-6 py-8 text-center text-zinc-400 text-xs tracking-wide">
+        Realtime IoT Dashboard &bull; 2026
     </footer>
 
     <!-- Firebase SDK (Modular v10) -->
@@ -67,7 +75,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // กำหนดค่า Firebase Config (ดึงจากโปรเจกต์ของคุณ)
         const firebaseConfig = {
             apiKey: "AIzaSyBXNHL9rKCHhhzWyDgEFFHEUHs4o5KIFQo",
             authDomain: "thanapat050-c7580.firebaseapp.com",
@@ -78,52 +85,55 @@
             appId: "1:199453229190:web:5b9b96/6084dc9bb389110"
         };
 
-        // เริ่มต้นใช้งาน Firebase
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-
-        // อ้างอิงพาธ "smartbin" ที่ ESP32 ส่งข้อมูลมา
         const binRef = ref(db, 'smartbin');
 
         const statusBadge = document.getElementById('connection-status');
-        const lidBox = document.getElementById('lid-status-box');
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+        
+        const lidStatusText = document.getElementById('lid-status-text');
+        const lidBadge = document.getElementById('lid-badge');
         const percentText = document.getElementById('trash-percent');
         const progressBar = document.getElementById('trash-progress');
         const modeText = document.getElementById('bin-mode');
         const distanceText = document.getElementById('hand-distance');
 
-        // ดึงข้อมูลแบบ Real-time
         onValue(binRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                statusBadge.textContent = "เชื่อมต่อสำเร็จ";
-                statusBadge.className = "text-xs bg-green-500 px-3 py-1 rounded-full text-white font-medium";
+                statusText.textContent = "Live";
+                statusDot.className = "w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse";
+                statusBadge.className = "inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-xs font-medium tracking-wide";
 
-                // อัปเดตสถานะฝาถัง
                 const lidStatus = data.lidStatus || "CLOSE";
-                lidBox.textContent = lidStatus === "OPEN" ? "เปิด (OPEN)" : "ปิด (CLOSE)";
                 if (lidStatus === "OPEN") {
-                    lidBox.className = "text-4xl font-bold py-4 px-8 rounded-xl bg-green-100 text-green-600 transition-all duration-300";
+                    lidStatusText.textContent = "Open";
+                    lidBadge.className = "w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl transition-colors duration-300";
+                    lidBadge.innerHTML = "📂";
                 } else {
-                    lidBox.className = "text-4xl font-bold py-4 px-8 rounded-xl bg-red-100 text-red-600 transition-all duration-300";
+                    lidStatusText.textContent = "Closed";
+                    lidBadge.className = "w-12 h-12 rounded-2xl bg-zinc-100 text-zinc-600 flex items-center justify-center text-xl transition-colors duration-300";
+                    lidBadge.innerHTML = "📁";
                 }
 
-                // อัปเดตเปอร์เซ็นต์ขยะ
                 const percent = data.percent || 0;
                 percentText.textContent = percent;
                 progressBar.style.width = percent + "%";
 
-                // อัปเดตโหมดและระยะทาง
                 modeText.textContent = data.mode || "AUTO";
                 distanceText.textContent = data.handDistance ? data.handDistance.toFixed(1) : "0.0";
             } else {
-                statusBadge.textContent = "ไม่พบข้อมูลในระบบ";
-                statusBadge.className = "text-xs bg-orange-500 px-3 py-1 rounded-full text-white font-medium";
+                statusText.textContent = "No Data";
+                statusDot.className = "w-1.5 h-1.5 rounded-full bg-amber-500";
+                statusBadge.className = "inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-xs font-medium tracking-wide";
             }
         }, (error) => {
-            console.error("Firebase Error: ", error);
-            statusBadge.textContent = "เชื่อมต่อล้มเหลว";
-            statusBadge.className = "text-xs bg-red-500 px-3 py-1 rounded-full text-white font-medium";
+            console.error(error);
+            statusText.textContent = "Error";
+            statusDot.className = "w-1.5 h-1.5 rounded-full bg-rose-500";
+            statusBadge.className = "inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 text-rose-600 text-xs font-medium tracking-wide";
         });
     </script>
 </body>
