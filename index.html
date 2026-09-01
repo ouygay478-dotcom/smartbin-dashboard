@@ -76,22 +76,23 @@
     </div>
 
     <script>
-        // ตั้งค่าการเชื่อมต่อ Firebase ผ่าน SDK (เชื่อมโยงกับ Database URL โดยตรง)
+        // ตั้งค่า Firebase Config พร้อมระบุ Database URL แบบมี Region
         const firebaseConfig = {
-    databaseURL: "https://thanapat050-c7580-default-rtdb.asia-southeast1.firebasedatabase.app/"
-};
+            databaseURL: "https://thanapat050-c7580-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
 
         // เริ่มต้นใช้งาน Firebase
         firebase.initializeApp(firebaseConfig);
-        const dbRef = firebase.database().ref();
+        
+        // ชี้ไปที่ Database URL โดยระบุผ่าน database() โดยตรง
+        const dbRef = firebase.database("https://thanapat050-c7580-default-rtdb.asia-southeast1.firebasedatabase.app").ref();
 
-        // ดึงข้อมูลแบบ Realtime ฟังการเปลี่ยนแปลงตลอดเวลา
+        // ดึงข้อมูลแบบ Realtime
         dbRef.on("value", (snapshot) => {
             const data = snapshot.val();
             if (data !== null) {
                 setConnectionStatus(true);
 
-                // รองรับทั้งข้อมูลแบบมีคีย์ smartbin ครอบหรืออยู่ด้านนอกสุด
                 const binData = data.smartbin ? data.smartbin : data;
 
                 document.getElementById("lidStatus").innerText = binData.lidStatus || "--";
