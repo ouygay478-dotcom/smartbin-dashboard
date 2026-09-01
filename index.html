@@ -4,182 +4,172 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartBin Dashboard</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-color: #f8f9fa;
-            --card-bg: #ffffff;
-            --text-primary: #1a1a1a;
-            --text-secondary: #6c757d;
-            --accent-color: #007bff;
-            --success-color: #28a745;
-            --danger-color: #dc3545;
-            --border-radius: 20px;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-primary);
+        * {
+            box-sizing: border-box;
             margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+        body {
+            background-color: #f8f9fa;
+            color: #111;
             padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            min-height: 100vh;
         }
-
         .container {
             width: 100%;
-            max-width: 480px;
+            max-width: 420px;
         }
-
         header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            padding: 0 5px;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            padding-top: 10px;
         }
-
-        h1 {
+        .title h1 {
             font-size: 24px;
-            margin: 0;
             font-weight: 700;
+            letter-spacing: -0.5px;
         }
-
-        p.subtitle {
-            margin: 2px 0 0 0;
+        .title p {
             font-size: 13px;
-            color: var(--text-secondary);
+            color: #666;
+            margin-top: 2px;
         }
-
         .status-badge {
             display: flex;
             align-items: center;
-            gap: 6px;
-            background: #e9ecef;
+            background: #eee;
             padding: 6px 12px;
             border-radius: 20px;
             font-size: 12px;
-            font-weight: 600;
-            color: var(--text-secondary);
+            font-weight: 500;
+            color: #555;
         }
-
-        .status-badge.connected {
-            background: #d4edda;
-            color: var(--success-color);
-        }
-
-        .dot {
+        .status-dot {
             width: 8px;
             height: 8px;
-            background-color: currentColor;
             border-radius: 50%;
+            background-color: #999;
+            margin-right: 6px;
         }
-
+        .status-badge.connected {
+            background: #e6f4ea;
+            color: #137333;
+        }
+        .status-badge.connected .status-dot {
+            background-color: #34a853;
+        }
+        .status-badge.disconnected {
+            background: #fce8e6;
+            color: #c5221f;
+        }
+        .status-badge.disconnected .status-dot {
+            background-color: #ea4335;
+        }
         .card {
-            background: var(--card-bg);
-            border-radius: var(--border-radius);
+            background: #ffffff;
+            border-radius: 20px;
             padding: 20px;
-            margin-bottom: 15px;
+            margin-bottom: 16px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            border: 1px solid #eaeaea;
             position: relative;
         }
-
-        .card-title {
+        .card-label {
             font-size: 11px;
-            font-weight: 700;
-            color: var(--text-secondary);
+            font-weight: 600;
+            color: #888;
             letter-spacing: 0.5px;
             margin-bottom: 8px;
         }
-
         .card-value {
             font-size: 28px;
             font-weight: 700;
-            color: var(--text-primary);
+            color: #111;
         }
-
-        .row {
-            display: flex;
-            gap: 15px;
-        }
-
-        .row .card {
-            flex: 1;
-        }
-
-        /* Progress Bar สำหรับ Trash Level */
-        .progress-container {
-            width: 100%;
-            background-color: #e9ecef;
-            border-radius: 10px;
-            height: 8px;
-            margin-top: 15px;
-            overflow: hidden;
-        }
-
-        .progress-bar {
-            height: 100%;
-            width: 0%;
-            background-color: var(--accent-color);
-            border-radius: 10px;
-            transition: width 0.4s ease;
-        }
-
-        .icon-absolute {
+        .icon-top-right {
             position: absolute;
             top: 20px;
             right: 20px;
-            font-size: 22px;
+            font-size: 20px;
         }
-
+        .row {
+            display: flex;
+            gap: 16px;
+        }
+        .row .card {
+            flex: 1;
+        }
+        .progress-bar-bg {
+            width: 100%;
+            height: 6px;
+            background: #f1f3f4;
+            border-radius: 3px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: #111;
+            width: 0%;
+            transition: width 0.4s ease;
+        }
         footer {
             text-align: center;
-            margin-top: 20px;
             font-size: 12px;
-            color: var(--text-secondary);
+            color: #888;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
+        <!-- Header -->
         <header>
-            <div>
+            <div class="title">
                 <h1>SmartBin.</h1>
-                <p class="subtitle">IoT Monitoring System</p>
+                <p>IoT Monitoring System</p>
             </div>
-            <div id="statusBadge" class="status-badge">
-                <div class="dot"></div>
-                <span id="statusText">Connecting</span>
+            <div id="statusBadge" class="status-badge disconnected">
+                <span class="status-dot"></span>
+                <span id="statusText">Disconnected</span>
             </div>
         </header>
 
-        <!-- LID STATUS -->
+        <!-- Lid Status Card -->
         <div class="card">
-            <div class="card-title">LID STATUS</div>
+            <div class="card-label">LID STATUS</div>
             <div id="lidStatus" class="card-value">--</div>
-            <div class="icon-absolute">🗑️</div>
+            <div class="icon-top-right">🗑️</div>
         </div>
 
-        <!-- TRASH LEVEL -->
+        <!-- Trash Level Card -->
         <div class="card">
-            <div class="card-title">TRASH LEVEL</div>
-            <div id="trashPercent" class="card-value">0%</div>
-            <div class="progress-container">
-                <div id="progressBar" class="progress-bar"></div>
+            <div class="card-label">TRASH LEVEL</div>
+            <div id="trashLevel" class="card-value">0%</div>
+            <div class="progress-bar-bg">
+                <div id="progressBar" class="progress-bar-fill"></div>
             </div>
         </div>
 
-        <!-- MODE & DISTANCE -->
+        <!-- Mode & Distance Row -->
         <div class="row">
             <div class="card">
-                <div class="card-title">MODE</div>
+                <div class="card-label">MODE</div>
                 <div id="binMode" class="card-value" style="font-size: 22px;">--</div>
             </div>
             <div class="card">
-                <div class="card-title">DISTANCE</div>
-                <div id="handDistance" class="card-value" style="font-size: 22px;">-- cm</div>
+                <div class="card-label">DISTANCE</div>
+                <div id="binDistance" class="card-value" style="font-size: 22px;">-- cm</div>
             </div>
         </div>
 
@@ -189,7 +179,6 @@
     </div>
 
     <script>
-        // ลิงก์ Firebase Realtime Database ของคุณ
         const FIREBASE_URL = "https://thanapat050-c7580-default-rtdb.firebaseio.com/smartbin.json";
 
         async function fetchData() {
@@ -199,45 +188,43 @@
                 
                 const data = await response.json();
                 
-                // ถ้ามีข้อมูลใน Firebase
                 if (data) {
-                    // อัปเดตสถานะเชื่อมต่อสำเร็จ
-                    document.getElementById("statusBadge").className = "status-badge connected";
-                    document.getElementById("statusText").innerText = "Connected";
+                    // อัปเดตสถานะเชื่อมต่อ
+                    setConnectionStatus(true);
 
-                    // 1. Lid Status
-                    const lid = data.lidStatus || "--";
-                    document.getElementById("lidStatus").innerText = lid;
-
-                    // 2. Trash Level (%)
-                    const percent = data.percent !== undefined ? data.percent : 0;
-                    document.getElementById("trashPercent").innerText = percent + "%";
-                    document.getElementById("progressBar").style.width = percent + "%";
+                    // อัปเดตข้อมูลลงหน้าเว็บ
+                    document.getElementById("lidStatus").innerText = data.lidStatus || "--";
                     
-                    // เปลี่ยนสีแถบตามความเต็ม
-                    if (percent >= 80) {
-                        document.getElementById("progressBar").style.backgroundColor = "var(--danger-color)";
-                    } else {
-                        document.getElementById("progressBar").style.backgroundColor = "var(--success-color)";
-                    }
+                    const percent = data.percent !== undefined ? data.percent : 0;
+                    document.getElementById("trashLevel").innerText = percent + "%";
+                    document.getElementById("progressBar").style.width = percent + "%";
 
-                    // 3. Mode
                     document.getElementById("binMode").innerText = data.mode || "--";
-
-                    // 4. Hand Distance
-                    const dist = data.handDistance !== undefined ? data.handDistance : 0;
-                    document.getElementById("handDistance").innerText = dist.toFixed(1) + " cm";
+                    
+                    const distance = data.handDistance !== undefined ? data.handDistance : "--";
+                    document.getElementById("binDistance").innerText = distance + " cm";
                 } else {
-                    throw new Error("No data found");
+                    setConnectionStatus(true); // ต่อติดแต่ไม่มีข้อมูล
                 }
             } catch (error) {
-                console.error("Error fetching data:", error);
-                document.getElementById("statusBadge").className = "status-badge";
-                document.getElementById("statusText").innerText = "Disconnected";
+                console.error("Fetch error:", error);
+                setConnectionStatus(false);
             }
         }
 
-        // ดึงข้อมูลทันทีเมื่อโหลดหน้าเว็บ และวนลูปทุกๆ 1 วินาที
+        function setConnectionStatus(isConnected) {
+            const badge = document.getElementById("statusBadge");
+            const text = document.getElementById("statusText");
+            if (isConnected) {
+                badge.className = "status-badge connected";
+                text.innerText = "Connected";
+            } else {
+                badge.className = "status-badge disconnected";
+                text.innerText = "Disconnected";
+            }
+        }
+
+        // ดึงข้อมูลทันทีเมื่อเปิดหน้าเว็บ และวนลูปทุกๆ 1 วินาที
         fetchData();
         setInterval(fetchData, 1000);
     </script>
