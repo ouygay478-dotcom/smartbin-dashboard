@@ -3,138 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartBin Minimal Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>SmartBin Dashboard</title>
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        :root {
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #6c757d;
+            --accent-color: #007bff;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --border-radius: 20px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding: 0 5px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin: 0;
+            font-weight: 700;
+        }
+
+        p.subtitle {
+            margin: 2px 0 0 0;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #e9ecef;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .status-badge.connected {
+            background: #d4edda;
+            color: var(--success-color);
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background-color: currentColor;
+            border-radius: 50%;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            position: relative;
+        }
+
+        .card-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .card-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .row .card {
+            flex: 1;
+        }
+
+        /* Progress Bar สำหรับ Trash Level */
+        .progress-container {
+            width: 100%;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            height: 8px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: var(--accent-color);
+            border-radius: 10px;
+            transition: width 0.4s ease;
+        }
+
+        .icon-absolute {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 22px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
     </style>
 </head>
-<body class="bg-zinc-50 text-zinc-900 min-h-screen flex flex-col justify-between selection:bg-zinc-900 selection:text-white">
+<body>
 
-    <!-- Header -->
-    <header class="w-full max-w-xl mx-auto px-6 pt-10 pb-6 flex justify-between items-center">
-        <div>
-            <h1 class="text-xl font-semibold tracking-tight">SmartBin.</h1>
-            <p class="text-xs text-zinc-400 font-medium mt-0.5">IoT Monitoring System</p>
-        </div>
-        <div id="connection-status" class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-200/60 text-zinc-600 text-xs font-medium tracking-wide transition-colors duration-300">
-            <span class="w-1.5 h-1.5 rounded-full bg-zinc-400" id="status-dot"></span>
-            <span id="status-text">Connecting</span>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="w-full max-w-xl mx-auto px-6 space-y-4 my-auto">
-        
-        <!-- Lid Status Card -->
-        <div class="bg-white p-6 rounded-3xl border border-zinc-200/80 shadow-xs flex items-center justify-between">
+    <div class="container">
+        <header>
             <div>
-                <span class="text-xs text-zinc-400 font-medium uppercase tracking-wider">Lid Status</span>
-                <h2 id="lid-status-text" class="text-2xl font-semibold tracking-tight text-zinc-800 mt-1">--</h2>
+                <h1>SmartBin.</h1>
+                <p class="subtitle">IoT Monitoring System</p>
             </div>
-            <div id="lid-badge" class="w-12 h-12 rounded-2xl bg-zinc-100 flex items-center justify-center text-xl transition-colors duration-300">
-                🗑️
+            <div id="statusBadge" class="status-badge">
+                <div class="dot"></div>
+                <span id="statusText">Connecting</span>
+            </div>
+        </header>
+
+        <!-- LID STATUS -->
+        <div class="card">
+            <div class="card-title">LID STATUS</div>
+            <div id="lidStatus" class="card-value">--</div>
+            <div class="icon-absolute">🗑️</div>
+        </div>
+
+        <!-- TRASH LEVEL -->
+        <div class="card">
+            <div class="card-title">TRASH LEVEL</div>
+            <div id="trashPercent" class="card-value">0%</div>
+            <div class="progress-container">
+                <div id="progressBar" class="progress-bar"></div>
             </div>
         </div>
 
-        <!-- Trash Level Card -->
-        <div class="bg-white p-6 rounded-3xl border border-zinc-200/80 shadow-xs">
-            <div class="flex justify-between items-end mb-4">
-                <div>
-                    <span class="text-xs text-zinc-400 font-medium uppercase tracking-wider">Trash Level</span>
-                    <h2 class="text-3xl font-semibold tracking-tight text-zinc-900 mt-1"><span id="trash-percent">0</span><span class="text-lg font-normal text-zinc-400 ml-0.5">%</span></h2>
-                </div>
+        <!-- MODE & DISTANCE -->
+        <div class="row">
+            <div class="card">
+                <div class="card-title">MODE</div>
+                <div id="binMode" class="card-value" style="font-size: 22px;">--</div>
             </div>
-            <div class="w-full bg-zinc-100 rounded-full h-2 overflow-hidden">
-                <div id="trash-progress" class="bg-zinc-900 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
-            </div>
-        </div>
-
-        <!-- Details Grid -->
-        <div class="grid grid-cols-2 gap-4">
-            <div class="bg-white p-5 rounded-3xl border border-zinc-200/80 shadow-xs">
-                <span class="text-xs text-zinc-400 font-medium uppercase tracking-wider">Mode</span>
-                <p id="bin-mode" class="text-lg font-semibold tracking-tight text-zinc-800 mt-1">--</p>
-            </div>
-            <div class="bg-white p-5 rounded-3xl border border-zinc-200/80 shadow-xs">
-                <span class="text-xs text-zinc-400 font-medium uppercase tracking-wider">Distance</span>
-                <p class="text-lg font-semibold tracking-tight text-zinc-800 mt-1"><span id="hand-distance">--</span> <span class="text-sm font-normal text-zinc-400">cm</span></p>
+            <div class="card">
+                <div class="card-title">DISTANCE</div>
+                <div id="handDistance" class="card-value" style="font-size: 22px;">-- cm</div>
             </div>
         </div>
 
-    </main>
+        <footer>
+            Realtime IoT Dashboard • 2026
+        </footer>
+    </div>
 
-    <!-- Footer -->
-    <footer class="w-full max-w-xl mx-auto px-6 py-8 text-center text-zinc-400 text-xs tracking-wide">
-        Realtime IoT Dashboard &bull; 2026
-    </footer>
+    <script>
+        // ลิงก์ Firebase Realtime Database ของคุณ
+        const FIREBASE_URL = "https://thanapat050-c7580-default-rtdb.firebaseio.com/smartbin.json";
 
-    <!-- Firebase SDK (Modular v10) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        async function fetchData() {
+            try {
+                const response = await fetch(FIREBASE_URL);
+                if (!response.ok) throw new Error("Network response was not ok");
+                
+                const data = await response.json();
+                
+                // ถ้ามีข้อมูลใน Firebase
+                if (data) {
+                    // อัปเดตสถานะเชื่อมต่อสำเร็จ
+                    document.getElementById("statusBadge").className = "status-badge connected";
+                    document.getElementById("statusText").innerText = "Connected";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBXNHL9rKCHhhzWyDgEFFHEUHs4o5KIFQo",
-            authDomain: "thanapat050-c7580.firebaseapp.com",
-            databaseURL: "https://thanapat050-c7580-default-rtdb.asia-southeast1.firebasedatabase.io",
-            projectId: "thanapat050-c7580",
-            storageBucket: "thanapat050-c7580.appspot.com",
-            messagingSenderId: "199453229190",
-            appId: "1:199453229190:web:5b9b96/6084dc9bb389110"
-        };
+                    // 1. Lid Status
+                    const lid = data.lidStatus || "--";
+                    document.getElementById("lidStatus").innerText = lid;
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const binRef = ref(db, 'smartbin');
+                    // 2. Trash Level (%)
+                    const percent = data.percent !== undefined ? data.percent : 0;
+                    document.getElementById("trashPercent").innerText = percent + "%";
+                    document.getElementById("progressBar").style.width = percent + "%";
+                    
+                    // เปลี่ยนสีแถบตามความเต็ม
+                    if (percent >= 80) {
+                        document.getElementById("progressBar").style.backgroundColor = "var(--danger-color)";
+                    } else {
+                        document.getElementById("progressBar").style.backgroundColor = "var(--success-color)";
+                    }
 
-        const statusBadge = document.getElementById('connection-status');
-        const statusDot = document.getElementById('status-dot');
-        const statusText = document.getElementById('status-text');
-        
-        const lidStatusText = document.getElementById('lid-status-text');
-        const lidBadge = document.getElementById('lid-badge');
-        const percentText = document.getElementById('trash-percent');
-        const progressBar = document.getElementById('trash-progress');
-        const modeText = document.getElementById('bin-mode');
-        const distanceText = document.getElementById('hand-distance');
+                    // 3. Mode
+                    document.getElementById("binMode").innerText = data.mode || "--";
 
-        onValue(binRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                statusText.textContent = "Live";
-                statusDot.className = "w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse";
-                statusBadge.className = "inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-xs font-medium tracking-wide";
-
-                const lidStatus = data.lidStatus || "CLOSE";
-                if (lidStatus === "OPEN") {
-                    lidStatusText.textContent = "Open";
-                    lidBadge.className = "w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl transition-colors duration-300";
-                    lidBadge.innerHTML = "📂";
+                    // 4. Hand Distance
+                    const dist = data.handDistance !== undefined ? data.handDistance : 0;
+                    document.getElementById("handDistance").innerText = dist.toFixed(1) + " cm";
                 } else {
-                    lidStatusText.textContent = "Closed";
-                    lidBadge.className = "w-12 h-12 rounded-2xl bg-zinc-100 text-zinc-600 flex items-center justify-center text-xl transition-colors duration-300";
-                    lidBadge.innerHTML = "📁";
+                    throw new Error("No data found");
                 }
-
-                const percent = data.percent || 0;
-                percentText.textContent = percent;
-                progressBar.style.width = percent + "%";
-
-                modeText.textContent = data.mode || "AUTO";
-                distanceText.textContent = data.handDistance ? data.handDistance.toFixed(1) : "0.0";
-            } else {
-                statusText.textContent = "No Data";
-                statusDot.className = "w-1.5 h-1.5 rounded-full bg-amber-500";
-                statusBadge.className = "inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-xs font-medium tracking-wide";
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                document.getElementById("statusBadge").className = "status-badge";
+                document.getElementById("statusText").innerText = "Disconnected";
             }
-        }, (error) => {
-            console.error(error);
-            statusText.textContent = "Error";
-            statusDot.className = "w-1.5 h-1.5 rounded-full bg-rose-500";
-            statusBadge.className = "inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 text-rose-600 text-xs font-medium tracking-wide";
-        });
+        }
+
+        // ดึงข้อมูลทันทีเมื่อโหลดหน้าเว็บ และวนลูปทุกๆ 1 วินาที
+        fetchData();
+        setInterval(fetchData, 1000);
     </script>
 </body>
 </html>
