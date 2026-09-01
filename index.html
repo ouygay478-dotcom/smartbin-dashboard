@@ -71,22 +71,20 @@
     </div>
 
     <script>
+        // ใช้ https:// เพื่อป้องกันปัญหา Mixed Content บน GitHub Pages
         const FIREBASE_URL = "https://thanapat050-c7580-default-rtdb.firebaseio.com/.json";
 
         async function fetchData() {
             try {
-                console.log("กำลังดึงข้อมูลจาก Firebase..."); // ดูใน Console ว่าฟังก์ชันทำงานไหม
                 const response = await fetch(FIREBASE_URL);
-                console.log("Response status:", response.status); // เช็กสถานะการตอบกลับ
-                
-                if (!response.ok) throw new Error("Network response was not ok: " + response.status);
+                if (!response.ok) throw new Error("Network response was not ok");
                 
                 const data = await response.json();
-                console.log("ข้อมูลที่ได้รับ:", data); // ดูข้อมูลดิบที่ได้
                 
                 if (data !== null) {
                     setConnectionStatus(true);
 
+                    // รองรับทั้งแบบมีคีย์ smartbin ครอบ หรืออยู่ข้างนอกสุด
                     const binData = data.smartbin ? data.smartbin : data;
 
                     document.getElementById("lidStatus").innerText = binData.lidStatus || "--";
@@ -100,11 +98,10 @@
                     const distance = binData.handDistance !== undefined ? binData.handDistance : "--";
                     document.getElementById("binDistance").innerText = distance + " cm";
                 } else {
-                    console.log("ข้อมูลใน Firebase เป็นค่าว่าง (null)");
                     setConnectionStatus(false);
                 }
             } catch (error) {
-                console.error("Fetch error รายละเอียด:", error);
+                console.error("Fetch error:", error);
                 setConnectionStatus(false);
             }
         }
