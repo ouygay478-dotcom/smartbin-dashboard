@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartBin Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- นำเข้า Firebase App และ Realtime Database SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -32,6 +32,7 @@
         .progress-bar-bg { width: 100%; height: 6px; background: #f1f3f4; border-radius: 3px; margin-top: 12px; overflow: hidden; }
         .progress-bar-fill { height: 100%; background: #111; width: 0%; transition: width 0.4s ease; }
         footer { text-align: center; font-size: 12px; color: #888; margin-top: 20px; }
+        #lastUpdate { font-size: 11px; color: #aaa; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -72,45 +73,54 @@
             </div>
         </div>
 
+        <div id="lastUpdate">ยังไม่มีข้อมูล</div>
         <footer>Realtime IoT Dashboard • 2026</footer>
     </div>
 
     <script>
-        // ตั้งค่า Firebase Config พร้อมระบุ Database URL แบบมี Region
+        // ต้องตรงกับ DATABASE_URL ในโค้ด ESP32 (esp32_smartbin.ino)
         const firebaseConfig = {
             databaseURL: "https://thanapat050-c7580-default-rtdb.asia-southeast1.firebasedatabase.app"
         };
 
-        // เริ่มต้นใช้งาน Firebase
-        firebase.initializeApp(firebaseConfig);
-        
-        // ชี้ไปที่ Database URL โดยระบุผ่าน database() โดยตรง
-        const dbRef = firebase.database("https://thanapat050-c7580-default-rtdb.asia-southeast1.firebasedatabase.app").ref();
+        if (typeof firebase === "undefined") {
+            document.getElementById("lastUpdate").innerText =
+                "โหลด Firebase SDK ไม่สำเร็จ — ตรวจอินเทอร์เน็ต/Ad blocker แล้วรีเฟรชใหม่";
+            throw new Error("Firebase SDK failed to load from CDN — check network/ad-blocker.");
+        }
 
-        // ดึงข้อมูลแบบ Realtime
+        firebase.initializeApp(firebaseConfig);
+
+        // ตรวจสอบสถานะการเชื่อมต่อกับ Firebase (Connected/Disconnected จริงๆ)
+        const connectedRef = firebase.database().ref(".info/connected");
+        connectedRef.on("value", (snap) => {
+            setConnectionStatus(snap.val() === true);
+        });
+
+        // ดึงข้อมูลถังขยะมาแสดงผลแบบเรียลไทม์
+        // ESP32 เขียนข้อมูลไว้ที่ path "/smartbin" ผ่าน PUT ไปที่ /smartbin.json
+        const dbRef = firebase.database().ref("smartbin");
         dbRef.on("value", (snapshot) => {
             const data = snapshot.val();
-            if (data !== null) {
-                setConnectionStatus(true);
+            if (data === null) return; // ยังไม่มีข้อมูลจาก ESP32
 
-                const binData = data.smartbin ? data.smartbin : data;
+            document.getElementById("lidStatus").innerText = data.lidStatus ?? "--";
 
-                document.getElementById("lidStatus").innerText = binData.lidStatus || "--";
-                
-                const percent = binData.percent !== undefined ? binData.percent : 0;
-                document.getElementById("trashLevel").innerText = percent + "%";
-                document.getElementById("progressBar").style.width = percent + "%";
+            const percent = Number(data.percent ?? 0);
+            document.getElementById("trashLevel").innerText = percent + "%";
+            document.getElementById("progressBar").style.width = percent + "%";
 
-                document.getElementById("binMode").innerText = binData.mode || "--";
-                
-                const distance = binData.handDistance !== undefined ? binData.handDistance : "--";
-                document.getElementById("binDistance").innerText = distance + " cm";
-            } else {
-                setConnectionStatus(false);
-            }
+            document.getElementById("binMode").innerText = data.mode ?? "--";
+
+            const distance = data.handDistance !== undefined ? data.handDistance : "--";
+            document.getElementById("binDistance").innerText = distance + " cm";
+
+            const now = new Date();
+            document.getElementById("lastUpdate").innerText =
+                "อัปเดตล่าสุด: " + now.toLocaleTimeString("th-TH");
         }, (error) => {
             console.error("Firebase Error:", error);
-            setConnectionStatus(false);
+            document.getElementById("lastUpdate").innerText = "เกิดข้อผิดพลาดในการอ่านข้อมูล";
         });
 
         function setConnectionStatus(isConnected) {
