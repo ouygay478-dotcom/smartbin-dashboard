@@ -3,51 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartBin Dashboard</title>
+    <title>SmartBin IR Dashboard</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; text-align: center; padding: 20px; margin: 0; }
-        .card { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 380px; margin: auto; }
-        h1 { color: #333; font-size: 22px; margin-bottom: 20px; }
-        .gauge-container { position: relative; margin: 20px 0; }
-        .battery-status { font-size: 14px; color: #666; margin-top: 10px; }
-        .status-badge { display: inline-block; padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 14px; margin-top: 15px; }
-        .ok { background-color: #e8f5e9; color: #2e7d32; }
-        .full { background-color: #ffebee; color: #c62828; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f4f6f9; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px; 
+        }
+        .card { 
+            background: white; 
+            padding: 30px 20px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08); 
+            width: 100%;
+            max-width: 380px; 
+            text-align: center;
+        }
+        h1 { 
+            color: #2c3e50; 
+            font-size: 22px; 
+            margin-bottom: 20px; 
+        }
+        .status-box { 
+            padding: 25px 15px; 
+            border-radius: 16px; 
+            font-size: 22px; 
+            font-weight: bold; 
+            margin: 20px 0; 
+            transition: all 0.3s ease;
+        }
+        .normal { 
+            background-color: #e8f5e9; 
+            color: #2e7d32; 
+            border: 2px solid #a5d6a7; 
+        }
+        .full { 
+            background-color: #ffebee; 
+            color: #c62828; 
+            border: 2px solid #ef9a9a; 
+        }
+        .loading { 
+            background-color: #f5f5f5; 
+            color: #757575; 
+            border: 2px solid #e0e0e0; 
+        }
+        .footer-text {
+            color: #888;
+            font-size: 13px;
+            margin-top: 10px;
+        }
     </style>
+    <!-- Firebase SDK v8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
 
 <div class="card">
     <h1>🗑️ SmartBin Status</h1>
     
-    <div style="font-size: 48px; font-weight: bold; color: #007bff;" id="bin-level">75%</div>
-    <div style="color: #666; font-size: 14px;">ระดับขยะปัจจุบัน</div>
-
-    <div id="status-badge" class="status-badge ok">สถานะ: ปกติ</div>
-
-    <div class="battery-status">
-        🔋 แบตเตอรี่ระบบ: <span id="battery">88%</span>
+    <div id="status-box" class="status-box loading">
+        🔄 กำลังเชื่อมต่อ...
     </div>
+
+    <p class="footer-text">อัปเดตสถานะอัตโนมัติแบบ Real-time</p>
 </div>
 
 <script>
-    // ฟังก์ชันจำลอง/รับค่า Real-time
-    function updateDashboard(level, battery) {
-        document.getElementById('bin-level').innerText = level + '%';
-        document.getElementById('battery').innerText = battery + '%';
-        
-        const badge = document.getElementById('status-badge');
-        if (level >= 80) {
-            badge.innerText = 'สถานะ: ขยะใกล้เต็ม!';
-            badge.className = 'status-badge full';
-        } else {
-            badge.innerText = 'สถานะ: ปกติ';
-            badge.className = 'status-badge ok';
-        }
-    }
+    // Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyBXNHL9rKCHhhzWyDgEffHEUHs4o5KIFQo",
+        authDomain: "thanapat050-c7580.firebaseapp.com",
+        databaseURL: "https://thanapat050-c7580-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "thanapat050-c7580",
+        storageBucket: "thanapat050-c7580.firebasestorage.app",
+        messagingSenderId: "199453229190",
+        appId: "1:199453229190:web:59b9676084dc9553891107",
+        measurementId: "G-QZKZQT3YFK"
+    };
 
-    // ตัวอย่าง: เรียกใช้อัปเดตค่า
-    updateDashboard(75, 88);
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    const statusBox = document.getElementById('status-box');
+
+    // Real-time listener
+    firebase.database().ref('/smartbin/isFull').on('value', (snapshot) => {
+        const isFull = snapshot.val();
+        if (isFull === true) {
+            statusBox.innerText = '🔴 ขยะเต็มแล้ว!';
+            statusBox.className = 'status-box full';
+        } else if (isFull === false) {
+            statusBox.innerText = '🟢 ขยะยังไม่เต็ม';
+            statusBox.className = 'status-box normal';
+        } else {
+            statusBox.innerText = '⚠️ ไม่พบข้อมูลสถานะ';
+            statusBox.className = 'status-box loading';
+        }
+    });
 </script>
 
 </body>
