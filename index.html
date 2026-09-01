@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartBin Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- นำเข้า Firebase App และ Realtime Database SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         body { background-color: #f8f9fa; color: #111; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
@@ -71,40 +76,41 @@
     </div>
 
     <script>
-        // ใช้ https:// เพื่อป้องกันปัญหา Mixed Content บน GitHub Pages
-        const FIREBASE_URL = "https://thanapat050-c7580-default-rtdb.firebaseio.com/.json";
+        // ตั้งค่าการเชื่อมต่อ Firebase ผ่าน SDK (เชื่อมโยงกับ Database URL โดยตรง)
+        const firebaseConfig = {
+            databaseURL: "https://thanapat050-c7580-default-rtdb.firebaseio.com/"
+        };
 
-        async function fetchData() {
-            try {
-                const response = await fetch(FIREBASE_URL);
-                if (!response.ok) throw new Error("Network response was not ok");
+        // เริ่มต้นใช้งาน Firebase
+        firebase.initializeApp(firebaseConfig);
+        const dbRef = firebase.database().ref();
+
+        // ดึงข้อมูลแบบ Realtime ฟังการเปลี่ยนแปลงตลอดเวลา
+        dbRef.on("value", (snapshot) => {
+            const data = snapshot.val();
+            if (data !== null) {
+                setConnectionStatus(true);
+
+                // รองรับทั้งข้อมูลแบบมีคีย์ smartbin ครอบหรืออยู่ด้านนอกสุด
+                const binData = data.smartbin ? data.smartbin : data;
+
+                document.getElementById("lidStatus").innerText = binData.lidStatus || "--";
                 
-                const data = await response.json();
+                const percent = binData.percent !== undefined ? binData.percent : 0;
+                document.getElementById("trashLevel").innerText = percent + "%";
+                document.getElementById("progressBar").style.width = percent + "%";
+
+                document.getElementById("binMode").innerText = binData.mode || "--";
                 
-                if (data !== null) {
-                    setConnectionStatus(true);
-
-                    // รองรับทั้งแบบมีคีย์ smartbin ครอบ หรืออยู่ข้างนอกสุด
-                    const binData = data.smartbin ? data.smartbin : data;
-
-                    document.getElementById("lidStatus").innerText = binData.lidStatus || "--";
-                    
-                    const percent = binData.percent !== undefined ? binData.percent : 0;
-                    document.getElementById("trashLevel").innerText = percent + "%";
-                    document.getElementById("progressBar").style.width = percent + "%";
-
-                    document.getElementById("binMode").innerText = binData.mode || "--";
-                    
-                    const distance = binData.handDistance !== undefined ? binData.handDistance : "--";
-                    document.getElementById("binDistance").innerText = distance + " cm";
-                } else {
-                    setConnectionStatus(false);
-                }
-            } catch (error) {
-                console.error("Fetch error:", error);
+                const distance = binData.handDistance !== undefined ? binData.handDistance : "--";
+                document.getElementById("binDistance").innerText = distance + " cm";
+            } else {
                 setConnectionStatus(false);
             }
-        }
+        }, (error) => {
+            console.error("Firebase Error:", error);
+            setConnectionStatus(false);
+        });
 
         function setConnectionStatus(isConnected) {
             const badge = document.getElementById("statusBadge");
@@ -117,9 +123,6 @@
                 text.innerText = "Disconnected";
             }
         }
-
-        fetchData();
-        setInterval(fetchData, 1000);
     </script>
 </body>
 </html>
