@@ -1,93 +1,130 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SmartBin Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
-  <style>
-    * { box-sizing: border-box; font-family: 'Kanit', sans-serif; }
-    body { background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-    .card { background: #ffffff; padding: 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); text-align: center; max-width: 380px; width: 100%; }
-    .bin-icon { font-size: 70px; margin: 15px 0; }
-    .status-badge { display: inline-block; padding: 8px 20px; border-radius: 50px; font-weight: 600; font-size: 1.1rem; margin-bottom: 20px; }
-    .bg-green { background: #e8f5e9; color: #2e7d32; }
-    .bg-red { background: #ffebee; color: #c62828; }
-    .progress-container { background: #e0e0e0; border-radius: 12px; height: 18px; width: 100%; overflow: hidden; margin-bottom: 10px; }
-    .progress-bar { background: #4caf50; height: 100%; width: 0%; transition: width 0.5s ease, background-color 0.5s ease; }
-    .percent-text { font-size: 2rem; font-weight: 600; color: #333; margin: 10px 0 5px 0; }
-    .timestamp { color: #888; font-size: 0.85rem; margin-top: 15px; }
-  </style>
-
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBin Dashboard</title>
+    <!-- นำเข้า Google Fonts และ Tailwind CSS เพื่อความสวยงาม -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        body { font-family: 'Prompt', sans-serif; }
+    </style>
 </head>
-<body>
+<body class="bg-gray-100 min-h-screen flex flex-col justify-between">
 
-  <div class="card">
-    <h2>🗑️ สถานะถังขยะอัจฉริยะ</h2>
-    <div class="bin-icon">🗑️</div>
-    
-    <div id="statusBadge" class="status-badge bg-green">กำลังโหลด...</div>
-    
-    <div class="progress-container">
-      <div id="progressBar" class="progress-bar"></div>
-    </div>
-    
-    <div class="percent-text" id="percentageText">0%</div>
-    <div class="timestamp" id="lastUpdated">อัปเดตล่าสุด: -</div>
-  </div>
+    <!-- Header -->
+    <header class="bg-indigo-600 text-white shadow-md py-4 px-6">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-semibold">🗑️ SmartBin Dashboard</h1>
+            <span id="connection-status" class="text-xs bg-yellow-500 px-3 py-1 rounded-full text-white font-medium">กำลังเชื่อมต่อ...</span>
+        </div>
+    </header>
 
-  <script>
-    // 1. นำค่า firebaseConfig จาก Firebase Console ของคุณมาวางตรงนี้
-    const firebaseConfig = {
-  apiKey: "AIzaSyBXNHL9rKCHhhzWyDgEffHEUHs4o5KIFQo",
-  authDomain: "thanapat050-c7580.firebaseapp.com",
-  databaseURL: "https://thanapat050-c7580-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "thanapat050-c7580",
-  storageBucket: "thanapat050-c7580.firebasestorage.app",
-  messagingSenderId: "199453229190",
-  appId: "1:199453229190:web:59b9676084dc9553891107",
-  measurementId: "G-QZKZQT3YFK"
-};
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto p-6 w-full grid grid-cols-1 md:grid-cols-2 gap-6 my-auto">
+        
+        <!-- สถานะฝาถัง -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center">
+            <h2 class="text-gray-500 font-medium mb-2">สถานะฝาถังขยะ (Lid Status)</h2>
+            <div id="lid-status-box" class="text-4xl font-bold py-4 px-8 rounded-xl bg-gray-100 text-gray-700 transition-all duration-300">
+                --
+            </div>
+        </div>
 
-    // เริ่มต้นใช้งาน Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+        <!-- ระดับขยะ -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center">
+            <h2 class="text-gray-500 font-medium mb-2">ระดับขยะในถัง (Trash Level)</h2>
+            <div class="text-4xl font-bold text-indigo-600 py-4">
+                <span id="trash-percent">0</span>%
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-3 mt-2 overflow-hidden">
+                <div id="trash-progress" class="bg-indigo-600 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+        </div>
 
-    // 2. กำหนด Path โหนดข้อมูลใน Firebase (ปรับให้ตรงกับที่คุณตั้งในโค้ดไมโครคอนโทรลเลอร์)
-    const binRef = db.ref('smartbin');
+        <!-- ข้อมูลเซนเซอร์เพิ่มเติม -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 md:col-span-2 grid grid-cols-2 gap-4 text-center">
+            <div class="p-4 bg-gray-50 rounded-xl">
+                <p class="text-gray-400 text-sm">โหมดการทำงาน</p>
+                <p id="bin-mode" class="text-xl font-semibold text-gray-800">--</p>
+            </div>
+            <div class="p-4 bg-gray-50 rounded-xl">
+                <p class="text-gray-400 text-sm">ระยะมือเข้าใกล้ (Ultrasonic)</p>
+                <p class="text-xl font-semibold text-gray-800"><span id="hand-distance">--</span> ซม.</p>
+            </div>
+        </div>
 
-    // 3. ดึงข้อมูลแบบ Real-time (ทำงานทันทีเมื่อค่าน้อยลง/มากขึ้น)
-    binRef.on('value', (snapshot) => {
-      const data = snapshot.val();
-      if (!data) return;
+    </main>
 
-      // สมมติโครงสร้างข้อมูล Firebase เช่น { isFull: false, percent: 15 }
-      const isFull = data.isFull || false;
-      const percent = data.percent || 0;
+    <!-- Footer -->
+    <footer class="text-center py-4 text-gray-400 text-sm">
+        SmartBin IoT Project &copy; 2026
+    </footer>
 
-      const badge = document.getElementById('statusBadge');
-      const bar = document.getElementById('progressBar');
-      const percentText = document.getElementById('percentageText');
-      const lastUpdated = document.getElementById('lastUpdated');
+    <!-- Firebase SDK (Modular v10) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-      percentText.innerText = percent + "%";
-      bar.style.width = Math.min(percent, 100) + "%";
+        // กำหนดค่า Firebase Config (ดึงจากโปรเจกต์ของคุณ)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBXNHL9rKCHhhzWyDgEFFHEUHs4o5KIFQo",
+            authDomain: "thanapat050-c7580.firebaseapp.com",
+            databaseURL: "https://thanapat050-c7580-default-rtdb.asia-southeast1.firebasedatabase.io",
+            projectId: "thanapat050-c7580",
+            storageBucket: "thanapat050-c7580.appspot.com",
+            messagingSenderId: "199453229190",
+            appId: "1:199453229190:web:5b9b96/6084dc9bb389110"
+        };
 
-      if (isFull || percent >= 80) {
-        badge.innerText = "🔴 ขยะเต็มแล้ว!";
-        badge.className = "status-badge bg-red";
-        bar.style.backgroundColor = "#e53935";
-      } else {
-        badge.innerText = "🟢 ขยะยังไม่เต็ม";
-        badge.className = "status-badge bg-green";
-        bar.style.backgroundColor = "#4caf50";
-      }
+        // เริ่มต้นใช้งาน Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-      const now = new Date();
-      lastUpdated.innerText = "อัปเดตล่าสุด: " + now.toLocaleTimeString('th-TH');
-    });
-  </script>
+        // อ้างอิงพาธ "smartbin" ที่ ESP32 ส่งข้อมูลมา
+        const binRef = ref(db, 'smartbin');
+
+        const statusBadge = document.getElementById('connection-status');
+        const lidBox = document.getElementById('lid-status-box');
+        const percentText = document.getElementById('trash-percent');
+        const progressBar = document.getElementById('trash-progress');
+        const modeText = document.getElementById('bin-mode');
+        const distanceText = document.getElementById('hand-distance');
+
+        // ดึงข้อมูลแบบ Real-time
+        onValue(binRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                statusBadge.textContent = "เชื่อมต่อสำเร็จ";
+                statusBadge.className = "text-xs bg-green-500 px-3 py-1 rounded-full text-white font-medium";
+
+                // อัปเดตสถานะฝาถัง
+                const lidStatus = data.lidStatus || "CLOSE";
+                lidBox.textContent = lidStatus === "OPEN" ? "เปิด (OPEN)" : "ปิด (CLOSE)";
+                if (lidStatus === "OPEN") {
+                    lidBox.className = "text-4xl font-bold py-4 px-8 rounded-xl bg-green-100 text-green-600 transition-all duration-300";
+                } else {
+                    lidBox.className = "text-4xl font-bold py-4 px-8 rounded-xl bg-red-100 text-red-600 transition-all duration-300";
+                }
+
+                // อัปเดตเปอร์เซ็นต์ขยะ
+                const percent = data.percent || 0;
+                percentText.textContent = percent;
+                progressBar.style.width = percent + "%";
+
+                // อัปเดตโหมดและระยะทาง
+                modeText.textContent = data.mode || "AUTO";
+                distanceText.textContent = data.handDistance ? data.handDistance.toFixed(1) : "0.0";
+            } else {
+                statusBadge.textContent = "ไม่พบข้อมูลในระบบ";
+                statusBadge.className = "text-xs bg-orange-500 px-3 py-1 rounded-full text-white font-medium";
+            }
+        }, (error) => {
+            console.error("Firebase Error: ", error);
+            statusBadge.textContent = "เชื่อมต่อล้มเหลว";
+            statusBadge.className = "text-xs bg-red-500 px-3 py-1 rounded-full text-white font-medium";
+        });
+    </script>
 </body>
 </html>
